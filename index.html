@@ -16,7 +16,7 @@
       }
 
       :root {
-        --brand-purple: rgb(72, 31, 168); /* updated at runtime to match video */
+        --brand-purple: rgb(72, 31, 168);
       }
 
       * {
@@ -41,20 +41,20 @@
         background: var(--brand-purple);
       }
 
-      .video {
+      .video-frame {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover;
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
         transition: opacity 180ms ease-out, visibility 180ms ease-out;
         background: var(--brand-purple);
+        border: 0;
       }
 
-      .video.active {
+      .video-frame.active {
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
@@ -87,34 +87,24 @@
   </head>
   <body>
     <section class="screen video-screen">
-      <video
-        id="videoLandscape"
-        class="video"
-        autoplay
-        muted
-        playsinline
-        loop
-        preload="auto"
-        aria-label="Landscape video"
-      >
-        <source src="STG_flash_horizontal.mp4" type="video/mp4" />
-      </video>
+      <iframe
+        id="flashLandscape"
+        class="video-frame"
+        src="standalone_flash.html"
+        title="Landscape animation"
+        aria-label="Landscape animation"
+      ></iframe>
 
-      <video
-        id="videoPortrait"
-        class="video"
-        autoplay
-        muted
-        playsinline
-        loop
-        preload="auto"
-        aria-label="Portrait video"
-      >
-        <source src="STG_flash_vertical.mp4" type="video/mp4" />
-      </video>
+      <iframe
+        id="flashPortrait"
+        class="video-frame"
+        src="standalone_flash_vertical.html"
+        title="Portrait animation"
+        aria-label="Portrait animation"
+      ></iframe>
 
       <div class="fallback" aria-hidden="true">
-        Loading video...
+        Loading animation...
       </div>
     </section>
 
@@ -123,90 +113,38 @@
     </section>
 
     <script>
-      const landscape = document.getElementById("videoLandscape");
-      const portrait = document.getElementById("videoPortrait");
+      const landscape = document.getElementById("flashLandscape");
+      const portrait = document.getElementById("flashPortrait");
       const fallback = document.querySelector(".fallback");
-      const samplerCanvas = document.createElement("canvas");
-      const samplerCtx = samplerCanvas.getContext("2d");
-      let readyVideos = 0;
-      let hasInitialized = false;
+      let readyFrames = 0;
 
-      function sampleColorFromVideo(video) {
-        if (!video || video.readyState < 2 || !samplerCtx) return;
-        try {
-          const w = video.videoWidth || 1;
-          const h = video.videoHeight || 1;
-          samplerCanvas.width = w;
-          samplerCanvas.height = h;
-          samplerCtx.drawImage(video, 0, 0, w, h);
-
-          const size = 10;
-          const x = Math.max(0, Math.floor(w / 2 - size / 2));
-          const y = Math.max(0, Math.floor(h / 2 - size / 2));
-          const data = samplerCtx.getImageData(x, y, size, size).data;
-
-          let r = 0;
-          let g = 0;
-          let b = 0;
-          let count = 0;
-          for (let i = 0; i < data.length; i += 4) {
-            r += data[i];
-            g += data[i + 1];
-            b += data[i + 2];
-            count += 1;
-          }
-          if (count === 0) return;
-
-          r = Math.round(r / count);
-          g = Math.round(g / count);
-          b = Math.round(b / count);
-
-          document.documentElement.style.setProperty(
-            "--brand-purple",
-            `rgb(${r}, ${g}, ${b})`
-          );
-        } catch (err) {
-          // ignore sampling errors
-        }
-      }
-
-      function toggleVideos() {
+      function toggleAnimations() {
         const useLandscape = window.innerWidth >= window.innerHeight;
         if (useLandscape) {
           landscape.classList.add("active");
           portrait.classList.remove("active");
-          sampleColorFromVideo(landscape);
         } else {
           portrait.classList.add("active");
           landscape.classList.remove("active");
-          sampleColorFromVideo(portrait);
         }
         if (fallback) {
-          fallback.style.display = "none";
+          fallback.style.display = readyFrames > 0 ? "none" : "grid";
         }
       }
 
       function markReady(event) {
-        if (readyVideos < 2) {
-          readyVideos += 1;
+        if (readyFrames < 2) {
+          readyFrames += 1;
         }
-        sampleColorFromVideo(event.target);
-        if (!hasInitialized && readyVideos >= 1) {
-          hasInitialized = true;
-          landscape.play().catch(() => {});
-          portrait.play().catch(() => {});
-          toggleVideos();
-        }
+        toggleAnimations();
       }
 
-      landscape.addEventListener("canplaythrough", markReady);
-      portrait.addEventListener("canplaythrough", markReady);
-      landscape.addEventListener("canplay", markReady);
-      portrait.addEventListener("canplay", markReady);
+      landscape.addEventListener("load", markReady);
+      portrait.addEventListener("load", markReady);
 
-      window.addEventListener("resize", toggleVideos);
-      window.addEventListener("orientationchange", toggleVideos);
-      window.addEventListener("DOMContentLoaded", toggleVideos);
+      window.addEventListener("resize", toggleAnimations);
+      window.addEventListener("orientationchange", toggleAnimations);
+      window.addEventListener("DOMContentLoaded", toggleAnimations);
     </script>
   </body>
 </html>
