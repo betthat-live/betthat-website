@@ -6,8 +6,7 @@
     <title>BetThat.Live</title>
     <style>
       :root {
-        --page-blue: rgb(38, 68, 223);
-        --cta-purple: rgb(72, 31, 168);
+        --brand-purple: rgb(72, 31, 168); /* updated at runtime to match video */
       }
 
       * {
@@ -17,7 +16,7 @@
       html,
       body {
         margin: 0;
-        background: var(--cta-purple);
+        background: var(--brand-purple);
         color: #ffffff;
         font-family: "TT Travels Next", "Helvetica Neue", Arial, sans-serif;
       }
@@ -29,7 +28,7 @@
       }
 
       .video-screen {
-        background: var(--page-blue);
+        background: var(--brand-purple);
       }
 
       .video {
@@ -39,7 +38,7 @@
         height: 100%;
         object-fit: cover;
         display: none;
-        background: var(--page-blue);
+        background: var(--brand-purple);
       }
 
       .video.active {
@@ -56,7 +55,7 @@
       }
 
       .cta-screen {
-        background: var(--cta-purple);
+        background: var(--brand-purple);
         display: grid;
         place-items: center;
         padding: 32px;
@@ -111,6 +110,47 @@
       const landscape = document.getElementById("videoLandscape");
       const portrait = document.getElementById("videoPortrait");
       const fallback = document.querySelector(".fallback");
+      const samplerCanvas = document.createElement("canvas");
+      const samplerCtx = samplerCanvas.getContext("2d");
+
+      function sampleColorFromVideo(video) {
+        if (!video || video.readyState < 2 || !samplerCtx) return;
+        try {
+          const w = video.videoWidth || 1;
+          const h = video.videoHeight || 1;
+          samplerCanvas.width = w;
+          samplerCanvas.height = h;
+          samplerCtx.drawImage(video, 0, 0, w, h);
+
+          const size = 10;
+          const x = Math.max(0, Math.floor(w / 2 - size / 2));
+          const y = Math.max(0, Math.floor(h / 2 - size / 2));
+          const data = samplerCtx.getImageData(x, y, size, size).data;
+
+          let r = 0;
+          let g = 0;
+          let b = 0;
+          let count = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count += 1;
+          }
+          if (count === 0) return;
+
+          r = Math.round(r / count);
+          g = Math.round(g / count);
+          b = Math.round(b / count);
+
+          document.documentElement.style.setProperty(
+            "--brand-purple",
+            `rgb(${r}, ${g}, ${b})`
+          );
+        } catch (err) {
+          // ignore sampling errors
+        }
+      }
 
       function toggleVideos() {
         const useLandscape = window.innerWidth >= window.innerHeight;
@@ -119,16 +159,22 @@
           portrait.classList.remove("active");
           landscape.play().catch(() => {});
           portrait.pause();
+          sampleColorFromVideo(landscape);
         } else {
           portrait.classList.add("active");
           landscape.classList.remove("active");
           portrait.play().catch(() => {});
           landscape.pause();
+          sampleColorFromVideo(portrait);
         }
         if (fallback) {
           fallback.style.display = "none";
         }
       }
+
+      const handleReady = (event) => sampleColorFromVideo(event.target);
+      landscape.addEventListener("canplay", handleReady);
+      portrait.addEventListener("canplay", handleReady);
 
       window.addEventListener("resize", toggleVideos);
       window.addEventListener("orientationchange", toggleVideos);
