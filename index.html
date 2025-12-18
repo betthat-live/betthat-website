@@ -90,7 +90,6 @@
       <iframe
         id="flashLandscape"
         class="video-frame"
-        src="standalone_flash.html"
         title="Landscape animation"
         aria-label="Landscape animation"
       ></iframe>
@@ -98,14 +97,11 @@
       <iframe
         id="flashPortrait"
         class="video-frame"
-        src="standalone_flash_vertical.html"
         title="Portrait animation"
         aria-label="Portrait animation"
       ></iframe>
 
-      <div class="fallback" aria-hidden="true">
-        Loading animation...
-      </div>
+      <div class="fallback" aria-hidden="true">Loading animation...</div>
     </section>
 
     <section class="screen cta-screen">
@@ -116,35 +112,61 @@
       const landscape = document.getElementById("flashLandscape");
       const portrait = document.getElementById("flashPortrait");
       const fallback = document.querySelector(".fallback");
-      let readyFrames = 0;
 
-      function toggleAnimations() {
-        const useLandscape = window.innerWidth >= window.innerHeight;
-        if (useLandscape) {
-          landscape.classList.add("active");
-          portrait.classList.remove("active");
-        } else {
+      function isMobile() {
+        // Heuristic: touch/coarse pointer OR small-ish screen
+        return (
+          window.matchMedia("(pointer: coarse)").matches ||
+          Math.min(window.innerWidth, window.innerHeight) < 768
+        );
+      }
+
+      function ensureSrc(which) {
+        if (which === "portrait" && !portrait.dataset.loaded) {
+          portrait.src = "standalone_flash_vertical.html";
+          portrait.dataset.loaded = "1";
+          portrait.addEventListener(
+            "load",
+            () => {
+              if (fallback) fallback.style.display = "none";
+              toggleActive();
+            },
+            { once: true }
+          );
+        }
+
+        if (which === "landscape" && !landscape.dataset.loaded) {
+          landscape.src = "standalone_flash.html";
+          landscape.dataset.loaded = "1";
+          landscape.addEventListener(
+            "load",
+            () => {
+              if (fallback) fallback.style.display = "none";
+              toggleActive();
+            },
+            { once: true }
+          );
+        }
+      }
+
+      function toggleActive() {
+        const mobile = isMobile();
+
+        // Mobile: only portrait. Non-mobile: only landscape.
+        if (mobile) {
+          ensureSrc("portrait");
           portrait.classList.add("active");
           landscape.classList.remove("active");
-        }
-        if (fallback) {
-          fallback.style.display = readyFrames > 0 ? "none" : "grid";
+        } else {
+          ensureSrc("landscape");
+          landscape.classList.add("active");
+          portrait.classList.remove("active");
         }
       }
 
-      function markReady(event) {
-        if (readyFrames < 2) {
-          readyFrames += 1;
-        }
-        toggleAnimations();
-      }
-
-      landscape.addEventListener("load", markReady);
-      portrait.addEventListener("load", markReady);
-
-      window.addEventListener("resize", toggleAnimations);
-      window.addEventListener("orientationchange", toggleAnimations);
-      window.addEventListener("DOMContentLoaded", toggleAnimations);
+      window.addEventListener("resize", toggleActive);
+      window.addEventListener("orientationchange", toggleActive);
+      window.addEventListener("DOMContentLoaded", toggleActive);
     </script>
   </body>
 </html>
