@@ -33,8 +33,16 @@
 
       .screen {
         position: relative;
-        height: 100vh;
         overflow: hidden;
+
+        /* Fix mobile address-bar / 100vh jank */
+        height: 100svh;
+      }
+
+      @supports (height: 100dvh) {
+        .screen {
+          height: 100dvh;
+        }
       }
 
       .video-screen {
@@ -52,21 +60,13 @@
         transition: opacity 180ms ease-out, visibility 180ms ease-out;
         background: var(--brand-purple);
         border: 0;
+        will-change: opacity;
       }
 
       .video-frame.active {
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
-      }
-
-      .fallback {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        text-align: center;
-        padding: 16px;
       }
 
       .cta-screen {
@@ -100,8 +100,6 @@
         title="Portrait animation"
         aria-label="Portrait animation"
       ></iframe>
-
-      <div class="fallback" aria-hidden="true">Loading animation...</div>
     </section>
 
     <section class="screen cta-screen">
@@ -111,22 +109,27 @@
     <script>
       const landscape = document.getElementById("flashLandscape");
       const portrait = document.getElementById("flashPortrait");
-      const fallback = document.querySelector(".fallback");
 
       function isMobileDevice() {
         // Best signal (Chromium): userAgentData.mobile
-        if (navigator.userAgentData && typeof navigator.userAgentData.mobile === "boolean") {
+        if (
+          navigator.userAgentData &&
+          typeof navigator.userAgentData.mobile === "boolean"
+        ) {
           return navigator.userAgentData.mobile;
         }
 
         // Fallback: UA sniff for phones/tablets
         const ua = navigator.userAgent || "";
-        const isPhoneOrAndroid = /Android|iPhone|iPod|IEMobile|Opera Mini|Mobi/i.test(ua);
+        const isPhoneOrAndroid =
+          /Android|iPhone|iPod|IEMobile|Opera Mini|Mobi/i.test(ua);
 
         // iPadOS sometimes reports as Macintosh; detect via touch points
         const isIPadOS =
           /iPad/i.test(ua) ||
-          (/Macintosh/i.test(ua) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
+          (/Macintosh/i.test(ua) &&
+            navigator.maxTouchPoints &&
+            navigator.maxTouchPoints > 1);
 
         return isPhoneOrAndroid || isIPadOS;
       }
@@ -135,27 +138,11 @@
         if (which === "portrait" && !portrait.dataset.loaded) {
           portrait.src = "standalone_flash_vertical.html";
           portrait.dataset.loaded = "1";
-          portrait.addEventListener(
-            "load",
-            () => {
-              if (fallback) fallback.style.display = "none";
-              toggleActive();
-            },
-            { once: true }
-          );
         }
 
         if (which === "landscape" && !landscape.dataset.loaded) {
           landscape.src = "standalone_flash.html";
           landscape.dataset.loaded = "1";
-          landscape.addEventListener(
-            "load",
-            () => {
-              if (fallback) fallback.style.display = "none";
-              toggleActive();
-            },
-            { once: true }
-          );
         }
       }
 
@@ -174,10 +161,27 @@
         }
       }
 
-      // Resize/orientation handlers kept, but mobile classification shouldn't flip on desktop now.
-      window.addEventListener("resize", toggleActive);
-      window.addEventListener("orientationchange", toggleActive);
+      // Throttle resize/orientation to once per animation frame (prevents event spam jank)
+      let scheduled = false;
+      function scheduleToggle() {
+        if (scheduled) return;
+        scheduled = true;
+        requestAnimationFrame(() => {
+          scheduled = false;
+          toggleActive();
+        });
+      }
+
+      window.addEventListener("resize", scheduleToggle, { passive: true });
+      window.addEventListener("orientationchange", scheduleToggle, {
+        passive: true,
+      });
       window.addEventListener("DOMContentLoaded", toggleActive);
+
+      // Optional: if coming back from background, re-evaluate once
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) scheduleToggle();
+      });
     </script>
   </body>
 </html>
