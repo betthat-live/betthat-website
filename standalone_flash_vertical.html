@@ -84,18 +84,19 @@ function calcVerticalSize(){
   return { w, h };
 }
 
-function setup(){
+function setup() {
   const { w, h } = calcVerticalSize();
 
-  if (IS_MOBILE) {
-    setAttributes("antialias", false);
-  }
+  // Cap DPR so it doesn't explode on phones (3x can be brutal)
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  // Keep WEBGL, but you can still turn off heavy antialiasing if needed
+  setAttributes("antialias", false);
 
   createCanvas(w, h, WEBGL);
 
-  // Big mobile perf win:
-  pixelDensity(IS_MOBILE ? 1 : Math.min(window.devicePixelRatio || 1, 2));
-  if (IS_MOBILE) noSmooth();
+  // Crisp but not insane
+  pixelDensity(dpr);
 
   bkgdColor = color(72, 31, 168);
   foreColor = color(255);
@@ -105,12 +106,14 @@ function setup(){
   colorA[3] = color('#f2ae30');
   colorA[4] = color('#f2aec1');
 
-  frameRate(IS_MOBILE ? 24 : frate);
-  textureMode(NORMAL);
+  // Keep your framerate (or try 30 if spikes still happen)
+  frameRate(frate);
 
+  textureMode(NORMAL);
   setText(starterText);
   pickScene();
 }
+
 
 
 function draw(){
@@ -214,11 +217,12 @@ function rgbToHex(r, g, b) {
   return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
 }
 
-function windowResized(){
+function windowResized() {
   const { w, h } = calcVerticalSize();
   resizeCanvas(w, h, true);
-  pixelDensity(IS_MOBILE ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+  pixelDensity(Math.min(window.devicePixelRatio || 1, 2));
 }
+
 
 </script>
 <script>
