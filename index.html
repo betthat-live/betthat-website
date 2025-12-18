@@ -113,12 +113,22 @@
       const portrait = document.getElementById("flashPortrait");
       const fallback = document.querySelector(".fallback");
 
-      function isMobile() {
-        // Heuristic: touch/coarse pointer OR small-ish screen
-        return (
-          window.matchMedia("(pointer: coarse)").matches ||
-          Math.min(window.innerWidth, window.innerHeight) < 768
-        );
+      function isMobileDevice() {
+        // Best signal (Chromium): userAgentData.mobile
+        if (navigator.userAgentData && typeof navigator.userAgentData.mobile === "boolean") {
+          return navigator.userAgentData.mobile;
+        }
+
+        // Fallback: UA sniff for phones/tablets
+        const ua = navigator.userAgent || "";
+        const isPhoneOrAndroid = /Android|iPhone|iPod|IEMobile|Opera Mini|Mobi/i.test(ua);
+
+        // iPadOS sometimes reports as Macintosh; detect via touch points
+        const isIPadOS =
+          /iPad/i.test(ua) ||
+          (/Macintosh/i.test(ua) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
+
+        return isPhoneOrAndroid || isIPadOS;
       }
 
       function ensureSrc(which) {
@@ -150,9 +160,9 @@
       }
 
       function toggleActive() {
-        const mobile = isMobile();
+        const mobile = isMobileDevice();
 
-        // Mobile: only portrait. Non-mobile: only landscape.
+        // Mobile device: only portrait. Non-mobile device: only landscape.
         if (mobile) {
           ensureSrc("portrait");
           portrait.classList.add("active");
@@ -164,6 +174,7 @@
         }
       }
 
+      // Resize/orientation handlers kept, but mobile classification shouldn't flip on desktop now.
       window.addEventListener("resize", toggleActive);
       window.addEventListener("orientationchange", toggleActive);
       window.addEventListener("DOMContentLoaded", toggleActive);
