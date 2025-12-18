@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SVG Front Page</title>
+    <style>
+      :root {
+        --page-blue: rgb(38, 68, 223);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: var(--page-blue);
+      }
+
+      .hero {
+        width: min(1200px, 95vw);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .hero img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="hero">
+      <img src="STGpow.svg" alt="Featured SVG artwork" />
+    </main>
+  </body>
+</html>
