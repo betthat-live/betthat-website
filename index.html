@@ -37,12 +37,17 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        display: none;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 180ms ease-out, visibility 180ms ease-out;
         background: var(--brand-purple);
       }
 
       .video.active {
-        display: block;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
       }
 
       .fallback {
@@ -112,6 +117,8 @@
       const fallback = document.querySelector(".fallback");
       const samplerCanvas = document.createElement("canvas");
       const samplerCtx = samplerCanvas.getContext("2d");
+      let readyVideos = 0;
+      let hasInitialized = false;
 
       function sampleColorFromVideo(video) {
         if (!video || video.readyState < 2 || !samplerCtx) return;
@@ -157,14 +164,10 @@
         if (useLandscape) {
           landscape.classList.add("active");
           portrait.classList.remove("active");
-          landscape.play().catch(() => {});
-          portrait.pause();
           sampleColorFromVideo(landscape);
         } else {
           portrait.classList.add("active");
           landscape.classList.remove("active");
-          portrait.play().catch(() => {});
-          landscape.pause();
           sampleColorFromVideo(portrait);
         }
         if (fallback) {
@@ -172,9 +175,23 @@
         }
       }
 
-      const handleReady = (event) => sampleColorFromVideo(event.target);
-      landscape.addEventListener("canplay", handleReady);
-      portrait.addEventListener("canplay", handleReady);
+      function markReady(event) {
+        if (readyVideos < 2) {
+          readyVideos += 1;
+        }
+        sampleColorFromVideo(event.target);
+        if (!hasInitialized && readyVideos >= 1) {
+          hasInitialized = true;
+          landscape.play().catch(() => {});
+          portrait.play().catch(() => {});
+          toggleVideos();
+        }
+      }
+
+      landscape.addEventListener("canplaythrough", markReady);
+      portrait.addEventListener("canplaythrough", markReady);
+      landscape.addEventListener("canplay", markReady);
+      portrait.addEventListener("canplay", markReady);
 
       window.addEventListener("resize", toggleVideos);
       window.addEventListener("orientationchange", toggleVideos);
