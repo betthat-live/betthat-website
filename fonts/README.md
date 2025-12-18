@@ -1,8 +1,8 @@
 # TT Travels Next fonts
 
-Place the licensed font files here, e.g.:
+Place the licensed font files here. Current setup expects:
 
-- `TTTravelsNext-Regular.woff2`
-- `TTTravelsNext-Bold.woff2`
+- `TTTravelsNext-Bold.woff2` (optional, preferred)
+- `TTTravelsNext-Bold.ttf` (provided)
 
-They are referenced in `index.html` via `@font-face`. If you include additional weights/styles, add matching `@font-face` rules.
+If you add other weights (e.g., Regular), add them here and wire them in `index.html` with matching `@font-face` rules.
