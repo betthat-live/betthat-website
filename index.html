@@ -7,6 +7,7 @@
     <style>
       :root {
         --page-blue: rgb(38, 68, 223);
+        --cta-purple: rgb(72, 31, 168);
       }
 
       * {
@@ -16,12 +17,22 @@
       body {
         margin: 0;
         background: var(--page-blue);
+        color: #ffffff;
+        font-family: "TT Travels Next", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      .screen {
+        position: relative;
         height: 100vh;
         overflow: hidden;
       }
 
+      .video-screen {
+        background: var(--page-blue);
+      }
+
       .video {
-        position: fixed;
+        position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
@@ -35,47 +46,65 @@
       }
 
       .fallback {
-        position: fixed;
+        position: absolute;
         inset: 0;
         display: grid;
         place-items: center;
-        color: #ffffff;
-        font-family: "Helvetica Neue", Arial, sans-serif;
         text-align: center;
         padding: 16px;
+      }
+
+      .cta-screen {
+        background: var(--cta-purple);
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        text-align: center;
+      }
+
+      .cta-screen h1 {
+        margin: 0;
+        font-size: clamp(2.75rem, 5vw, 4rem);
+        letter-spacing: 0.05em;
       }
     </style>
   </head>
   <body>
-    <video
-      id="videoLandscape"
-      class="video"
-      autoplay
-      muted
-      playsinline
-      loop
-      preload="auto"
-      aria-label="Landscape video"
-    >
-      <source src="STG_flash_horizontal.mp4" type="video/mp4" />
-    </video>
+    <section class="screen video-screen">
+      <video
+        id="videoLandscape"
+        class="video"
+        autoplay
+        muted
+        playsinline
+        loop
+        preload="auto"
+        aria-label="Landscape video"
+      >
+        <source src="STG_flash_horizontal.mp4" type="video/mp4" />
+      </video>
 
-    <video
-      id="videoPortrait"
-      class="video"
-      autoplay
-      muted
-      playsinline
-      loop
-      preload="auto"
-      aria-label="Portrait video"
-    >
-      <source src="STG_flash_vertical.mp4" type="video/mp4" />
-    </video>
+      <video
+        id="videoPortrait"
+        class="video"
+        autoplay
+        muted
+        playsinline
+        loop
+        preload="auto"
+        aria-label="Portrait video"
+      >
+        <source src="STG_flash_vertical.mp4" type="video/mp4" />
+      </video>
 
-    <div class="fallback" aria-hidden="true">
-      Loading video...
-    </div>
+      <div class="fallback" aria-hidden="true">
+        Loading video...
+      </div>
+    </section>
+
+    <section class="screen cta-screen">
+      <h1>Coming 1/1/25</h1>
+    </section>
 
     <script>
       const landscape = document.getElementById("videoLandscape");
