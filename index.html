@@ -184,7 +184,7 @@
         if (!document.hidden) scheduleToggle();
       });
 
-      const countdownTarget = new Date("2025-01-01T00:00:00");
+      const countdownTarget = new Date("2026-01-01T00:00:00");
 
       function formatCountdown(msRemaining) {
         const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
@@ -192,7 +192,7 @@
         const hours = Math.floor((totalSeconds % 86400) / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
-        return `${String(days).padStart(2, "0")}d ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
+        return `${String(days).padStart(2, "0")}:${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
       }
 
       function updateCountdown() {
