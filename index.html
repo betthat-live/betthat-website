@@ -103,12 +103,13 @@
     </section>
 
     <section class="screen cta-screen">
-      <h1>Coming 1/1/25</h1>
+      <h1 id="countdown">Coming 1/1/25</h1>
     </section>
 
     <script>
       const landscape = document.getElementById("flashLandscape");
       const portrait = document.getElementById("flashPortrait");
+      const countdownEl = document.getElementById("countdown");
 
       function isMobileDevice() {
         // Best signal (Chromium): userAgentData.mobile
@@ -182,6 +183,26 @@
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) scheduleToggle();
       });
+
+      const countdownTarget = new Date("2025-01-01T00:00:00");
+
+      function formatCountdown(msRemaining) {
+        const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(days).padStart(2, "0")}d ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
+      }
+
+      function updateCountdown() {
+        const now = new Date();
+        const diff = countdownTarget - now;
+        countdownEl.textContent = formatCountdown(diff);
+      }
+
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
     </script>
   </body>
 </html>
